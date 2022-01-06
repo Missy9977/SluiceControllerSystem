@@ -18,12 +18,14 @@ public class TokenService {
     @Autowired
     private UserInfoCache userInfoCache;
 
-    public TokenInfo queryToken(GetTokenReq getTokenReq) {
+    public TokenInfo getToken(GetTokenReq getTokenReq) {
         TokenInfo tokenInfo = new TokenInfo();
+
         if (verify(getTokenReq.getClient_id(), getTokenReq.getClient_secret())) {
             tokenInfo.setAccess_token(buildTokenString());
             tokenInfo.setExpires_in(EXPIRE);
         }
+
         return tokenInfo;
     }
 
