@@ -5,13 +5,17 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.alibaba.fastjson.JSONObject;
 import com.sluice.access.util.RestTemplateUtil;
 import com.sluice.access.util.URLConnectionUtil;
+import com.sluice.data.KvInfo;
 import com.sluice.service.request.GetDataReq;
 import com.sluice.service.request.SetDataReq;
 
@@ -30,49 +34,74 @@ import com.sluice.service.request.SetDataReq;
 @Service("dataService")
 public class DataService {
 
-    private static final String GET_TAG_LIST_URL = "http://127.0.0.1:8080/GetTagList";
+    private static final Log LOGGER = LogFactory.getLog(DataService.class);
 
-    private static final String GET_TAG_URL = "http://127.0.0.1:8080/GetTagValue?strVarName=";
+    private static final String HTTP_STRING = "http://";
+
+    private static final String GET_TAG_LIST_URL = "http://127.0.0.1:8280/GetTagList";
+
+    private static final String GET_TAG_URL = "http://127.0.0.1:8280/GetTagValue?strVarName=";
 
     // TODO
-    private static final String SET_TAG_URL = "http://127.0.0.1:8080/SetTagValue";
+    private static final String SET_TAG_URL = "http://127.0.0.1:8280/SetTagValue";
 
     private static final String REQUEST_PARAM_ENCODING = "gb2312";
 
     private static final String RESPONSE_PARAM_ENCODING = "gbk";
 
     public Object getData(GetDataReq getDataReq) {
-        String result = null;
+        LOGGER.info("=== Start to do getData(), and the req is " + getDataReq);
+
+        KvInfo kvInfo = null;
 
         try {
             String encName = URLEncoder.encode(getDataReq.getName(), REQUEST_PARAM_ENCODING);
             String urlString = GET_TAG_URL + encName;
 
-            result = URLConnectionUtil.doGet(urlString, RESPONSE_PARAM_ENCODING);
+            LOGGER.info("=== start to send http request for " + urlString);
+
+            String result = URLConnectionUtil.doGet(urlString, RESPONSE_PARAM_ENCODING);
+
+            LOGGER.info("=== get the result from http request, result : " + result);
+
+            kvInfo = JSONObject.parseObject(result, KvInfo.class);
+
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("=== Failed to do getData()");
+            LOGGER.error(e);
         }
 
-        return result;
+        LOGGER.info("=== End to do getData(), and the result is " + kvInfo);
+        return kvInfo;
     }
 
     public Object getDataList() {
+        LOGGER.info("=== Start to do getDataList(), and the req is null");
+
+        LOGGER.info("=== start to send http request for " + GET_TAG_LIST_URL);
+
         RestTemplate restTemplate = RestTemplateUtil.newInstance();
         ResponseEntity<Resource> entity = restTemplate.getForEntity(GET_TAG_LIST_URL, Resource.class);
-        String string = null;
+
+        String result = null;
+
         try {
             InputStream in = entity.getBody().getInputStream();
-            string = IOUtils.toString(in, RESPONSE_PARAM_ENCODING);
-            System.err.println(string);
+            result = IOUtils.toString(in, RESPONSE_PARAM_ENCODING);
+            LOGGER.info("=== get the result from http request, result : " + result);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("=== Failed to do getDataList()");
+            LOGGER.error(e);
         }
-        return string;
+
+        LOGGER.info("=== End to do getDataList(), and the result is " + result);
+        return result;
     }
 
     public Object setData(SetDataReq setDataReq) {
+        LOGGER.info("=== Start to do setData(), and the req is " + setDataReq);
 
-        String reslut = null;
+        String result = null;
 
         try {
             String username = null;
@@ -84,12 +113,18 @@ public class DataService {
             String urlString = SET_TAG_URL + "?" + "UserName=" + username + "&" + "PassWord" + password + "&"
                 + "strTagName" + dataName + "&" + "strSetTagValue" + dataValue;
 
-            reslut = URLConnectionUtil.doGet(urlString, RESPONSE_PARAM_ENCODING);
+            LOGGER.info("=== start to send http request for " + urlString);
+
+            result = URLConnectionUtil.doGet(urlString, RESPONSE_PARAM_ENCODING);
+
+            LOGGER.info("=== get the result from http request, result : " + result);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("=== Failed to do setData()");
+            LOGGER.error(e);
         }
-        
-        return reslut;
+
+        LOGGER.info("=== End to do setData(), and the result is " + result);
+        return result;
     }
 
 }
