@@ -7,6 +7,7 @@ import java.net.URLEncoder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import com.alibaba.fastjson.JSONObject;
 import com.sluice.access.util.RestTemplateUtil;
 import com.sluice.access.util.URLConnectionUtil;
+import com.sluice.cache.PropertyCache;
 import com.sluice.data.KvInfo;
 import com.sluice.service.request.GetDataReq;
 import com.sluice.service.request.SetDataReq;
@@ -36,18 +38,25 @@ public class DataService {
 
     private static final Log LOGGER = LogFactory.getLog(DataService.class);
 
-    private static final String HTTP_STRING = "http://";
+    /**
+     * url + interface;http://192.168.31.15:8081
+     */
+    private static final String GET_TAG_LIST = "/GetTagList";
 
-    private static final String GET_TAG_LIST_URL = "http://127.0.0.1:8280/GetTagList";
+    private static final String GET_TAG = "/GetTagValue";
 
-    private static final String GET_TAG_URL = "http://127.0.0.1:8280/GetTagValue?strVarName=";
+    private static final String SET_TAG = "/SetTagValue";
 
-    // TODO
-    private static final String SET_TAG_URL = "http://127.0.0.1:8280/SetTagValue";
+    private static final String KV_HOST = "kv.host";
+    private static final String KV_USERNAME = "kv.username";
+    private static final String KV_PASSWORD = "kv.password";
 
     private static final String REQUEST_PARAM_ENCODING = "gb2312";
 
     private static final String RESPONSE_PARAM_ENCODING = "gbk";
+
+    @Autowired
+    private PropertyCache propertyCache;
 
     public Object getData(GetDataReq getDataReq) {
         LOGGER.info("=== Start to do getData(), and the req is " + getDataReq);
@@ -56,7 +65,7 @@ public class DataService {
 
         try {
             String encName = URLEncoder.encode(getDataReq.getName(), REQUEST_PARAM_ENCODING);
-            String urlString = GET_TAG_URL + encName;
+            String urlString = GET_TAG + "?strVarName=" + encName;
 
             LOGGER.info("=== start to send http request for " + urlString);
 
@@ -78,10 +87,12 @@ public class DataService {
     public Object getDataList() {
         LOGGER.info("=== Start to do getDataList(), and the req is null");
 
-        LOGGER.info("=== start to send http request for " + GET_TAG_LIST_URL);
+        String url = propertyCache.getPropertyValue(KV_HOST) + GET_TAG_LIST;
+
+        LOGGER.info("=== start to send http request for " + url);
 
         RestTemplate restTemplate = RestTemplateUtil.newInstance();
-        ResponseEntity<Resource> entity = restTemplate.getForEntity(GET_TAG_LIST_URL, Resource.class);
+        ResponseEntity<Resource> entity = restTemplate.getForEntity(url, Resource.class);
 
         String result = null;
 
@@ -104,14 +115,14 @@ public class DataService {
         String result = null;
 
         try {
-            String username = null;
-            String password = null;
+            String username = propertyCache.getPropertyValue(KV_USERNAME);
+            String password = propertyCache.getPropertyValue(KV_PASSWORD);
             String dataName = URLEncoder.encode(setDataReq.getName(), REQUEST_PARAM_ENCODING);
             String dataValue = setDataReq.getValue();
 
             // SetTagValue?UserName=administrator&PassWord=12345678123456781234567812345678&strTagName=TagName&strSetTagValue=SetTagValue
-            String urlString = SET_TAG_URL + "?" + "UserName=" + username + "&" + "PassWord" + password + "&"
-                + "strTagName" + dataName + "&" + "strSetTagValue" + dataValue;
+            String urlString = propertyCache.getPropertyValue(KV_HOST) + SET_TAG + "?" + "UserName=" + username + "&"
+                + "PassWord" + password + "&" + "strTagName" + dataName + "&" + "strSetTagValue" + dataValue;
 
             LOGGER.info("=== start to send http request for " + urlString);
 

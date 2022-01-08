@@ -4,20 +4,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.stereotype.Component;
+
+@Component("propertyUtil")
 public class PropertyUtil {
+    private static final Log LOGGER = LogFactory.getLog(PropertyUtil.class);
 
-    private Properties properties = new Properties();
+    private static final String FILENAME = "kv.properties";
 
-    public void readProperties (String fileName) {
-        InputStream is = PropertyUtil.class.getResourceAsStream(fileName);
-        try {
+    private final Properties properties = new Properties();
+
+    public PropertyUtil() {
+        readProperties(FILENAME);
+    }
+
+    public void readProperties(String fileName) {
+        try (InputStream is = PropertyUtil.class.getResourceAsStream(fileName)) {
             properties.load(is);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("=== Failed to load properties file,filename is " + fileName);
+            LOGGER.error(e);
         }
     }
 
     public String getPropertyValue(String key) {
-        return (String) properties.get(key);
+        return properties.getProperty(key);
     }
 }

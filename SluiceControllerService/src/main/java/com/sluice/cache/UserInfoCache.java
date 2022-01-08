@@ -19,14 +19,14 @@ public class UserInfoCache {
 
     private static final long EXPIRES = 7200;
 
-    private final Cache<String, String> userInfoCache =
+    private final Cache<String, String> cache =
         CacheBuilder.newBuilder().initialCapacity(30).expireAfterAccess(EXPIRES, TimeUnit.SECONDS).build();
 
     @Autowired
     private UserInfoUtil userInfoUtil;
 
     public String getUserSecret(String id) throws ExecutionException {
-        return userInfoCache.get(id, () -> userInfoUtil.getSecret(id));
+        return cache.get(id, () -> userInfoUtil.getSecret(id));
     }
 
     public long getExpires() {
