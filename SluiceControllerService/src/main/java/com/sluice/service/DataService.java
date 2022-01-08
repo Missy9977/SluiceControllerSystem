@@ -6,6 +6,8 @@ import com.sluice.service.request.GetDataReq;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
+
+import com.sluice.service.request.SetDataReq;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,9 @@ public class DataService {
     private static final String GET_TAG_LIST_URL = "http://127.0.0.1:8080/GetTagList";
 
     private static final String GET_TAG_URL = "http://127.0.0.1:8080/GetTagValue?strVarName=";
+
+    // TODO
+    private static final String SET_TAG_URL = "http://127.0.0.1:8080/GetTagValue?strVarName=";
 
     private static final String REQUEST_PARAM_ENCODING = "gb2312";
 
@@ -56,4 +61,27 @@ public class DataService {
         }
         return string;
     }
+
+
+
+    public Object setData(SetDataReq setDataReq) {
+        String name  = setDataReq.getName();
+        String value  = setDataReq.getValue();
+
+        String reslut = null;
+
+        try {
+            String encName = URLEncoder.encode(name, REQUEST_PARAM_ENCODING);
+
+            // todo 组装url
+            String urlString = GET_TAG_URL + encName;
+
+            reslut = URLConnectionUtil.doGet(urlString, RESPONSE_PARAM_ENCODING);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return reslut;
+    }
+
 }

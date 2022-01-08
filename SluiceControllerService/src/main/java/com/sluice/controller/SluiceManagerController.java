@@ -4,6 +4,7 @@ import com.sluice.service.DataService;
 import com.sluice.service.TokenService;
 import com.sluice.service.request.GetDataReq;
 import com.sluice.service.request.GetTokenReq;
+import com.sluice.service.request.SetDataReq;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,5 +35,9 @@ public class SluiceManagerController {
         return dataService.getData(getDataReq);
     }
 
+    @RequestMapping(path = "/setData", method = RequestMethod.POST)
+    public Object setData(@RequestBody SetDataReq setDataReq) {
+        return dataService.setData(setDataReq);
+    }
 
 }
