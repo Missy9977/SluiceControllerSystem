@@ -3,6 +3,7 @@ package com.sluice.access.util;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -11,8 +12,7 @@ import org.apache.commons.io.IOUtils;
  */
 public class URLConnectionUtil {
 
-    private URLConnectionUtil() {
-    }
+    private URLConnectionUtil() {}
 
     public static String doGet(String urlString, String outputEnc) throws Exception {
         URL url = new URL(urlString);
@@ -21,8 +21,7 @@ public class URLConnectionUtil {
 
         connection.setRequestProperty("accept", "*/*");
         connection.setRequestProperty("connection", "Keep-Alive");
-        connection.setRequestProperty("user-agent",
-                "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+        connection.setRequestProperty("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
 
         connection.connect();
 

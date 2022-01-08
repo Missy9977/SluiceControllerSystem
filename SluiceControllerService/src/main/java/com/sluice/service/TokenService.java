@@ -1,19 +1,19 @@
 package com.sluice.service;
 
-import com.sluice.cache.UserInfoCache;
-import com.sluice.data.TokenInfo;
-import com.sluice.service.request.GetTokenReq;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.sluice.cache.UserInfoCache;
+import com.sluice.data.TokenInfo;
+import com.sluice.service.request.GetTokenReq;
+
 @Service("tokenService")
 public class TokenService {
-
-    private static final long EXPIRE = 7200;
 
     @Autowired
     private UserInfoCache userInfoCache;
@@ -21,9 +21,9 @@ public class TokenService {
     public TokenInfo getToken(GetTokenReq getTokenReq) {
         TokenInfo tokenInfo = new TokenInfo();
 
-        if (verify(getTokenReq.getClient_id(), getTokenReq.getClient_secret())) {
-            tokenInfo.setAccess_token(buildTokenString());
-            tokenInfo.setExpires_in(EXPIRE);
+        if (verify(getTokenReq.getId(), getTokenReq.getSecret())) {
+            tokenInfo.setToken(buildTokenString());
+            tokenInfo.setExpires(userInfoCache.getExpires());
         }
 
         return tokenInfo;
@@ -39,7 +39,7 @@ public class TokenService {
         return Objects.equals(presetSecret, secret);
     }
 
-    //  todo 生成token
+    // todo 生成token
     private String buildTokenString() {
         byte[] bytes = Base64.getEncoder().encode(String.valueOf(System.currentTimeMillis()).getBytes());
         return Arrays.toString(bytes);

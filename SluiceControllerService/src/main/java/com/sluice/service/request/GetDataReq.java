@@ -18,8 +18,6 @@ public class GetDataReq {
 
     @Override
     public String toString() {
-        return "GetDataReq{" +
-                "name='" + name + '\'' +
-                '}';
+        return "GetDataReq{" + "name='" + name + '\'' + '}';
     }
 }

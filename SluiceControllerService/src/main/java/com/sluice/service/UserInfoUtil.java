@@ -1,12 +1,14 @@
 package com.sluice.service;
 
+import java.io.InputStream;
+import java.util.List;
+
+import org.apache.commons.io.IOUtils;
+import org.springframework.stereotype.Component;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.sluice.data.UserInfo;
-import java.io.InputStream;
-import java.util.List;
-import org.apache.commons.io.IOUtils;
-import org.springframework.stereotype.Component;
 
 /**
  * @author : missy
@@ -21,10 +23,9 @@ public class UserInfoUtil {
         List<UserInfo> userInfoList = getKeys();
 
         if (userInfoList != null) {
-            for (UserInfo userInfo : userInfoList
-            ) {
-                if (userInfo.getClient_id().equals(id)) {
-                    return userInfo.getClient_secret();
+            for (UserInfo userInfo : userInfoList) {
+                if (userInfo.getId().equals(id)) {
+                    return userInfo.getSecret();
                 }
             }
         }
@@ -35,9 +36,7 @@ public class UserInfoUtil {
     private List<UserInfo> getKeys() {
         List<UserInfo> userInfoList = null;
 
-        try (
-                InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(KEYS_URL);
-        ) {
+        try (InputStream is = this.getClass().getResourceAsStream(KEYS_URL)) {
             JSONObject jsonObject = JSONObject.parseObject(IOUtils.toString(is, "utf-8"));
             String keys = jsonObject.getString("keys");
             userInfoList = JSONArray.parseArray(keys, UserInfo.class);

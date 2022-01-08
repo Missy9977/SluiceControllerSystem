@@ -24,9 +24,6 @@ public class SetDataReq {
 
     @Override
     public String toString() {
-        return "SetDataReq{" +
-                "name='" + name + '\'' +
-                ", value='" + value + '\'' +
-                '}';
+        return "SetDataReq{" + "name='" + name + '\'' + ", value='" + value + '\'' + '}';
     }
 }

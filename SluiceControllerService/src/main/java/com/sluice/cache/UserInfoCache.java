@@ -1,12 +1,14 @@
 package com.sluice.cache;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.sluice.service.UserInfoUtil;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * @author : missy
@@ -15,14 +17,19 @@ import org.springframework.stereotype.Component;
 @Component("userInfoCache")
 public class UserInfoCache {
 
-    private final Cache<String, String> userInfoCache = CacheBuilder.newBuilder().initialCapacity(30)
-            .expireAfterAccess(30,
-                    TimeUnit.MINUTES).build();
+    private static final long EXPIRES = 7200;
+
+    private final Cache<String, String> userInfoCache =
+        CacheBuilder.newBuilder().initialCapacity(30).expireAfterAccess(EXPIRES, TimeUnit.SECONDS).build();
 
     @Autowired
     private UserInfoUtil userInfoUtil;
 
     public String getUserSecret(String id) throws ExecutionException {
         return userInfoCache.get(id, () -> userInfoUtil.getSecret(id));
+    }
+
+    public long getExpires() {
+        return EXPIRES;
     }
 }
