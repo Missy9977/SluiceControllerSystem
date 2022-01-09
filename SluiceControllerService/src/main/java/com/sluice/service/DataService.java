@@ -3,6 +3,10 @@ package com.sluice.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -18,6 +22,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.sluice.access.util.RestTemplateUtil;
 import com.sluice.access.util.URLConnectionUtil;
 import com.sluice.cache.PropertyCache;
+import com.sluice.cache.TokenCache;
+import com.sluice.data.BaseInfo;
 import com.sluice.data.KvInfo;
 import com.sluice.data.KvRemoteInfo;
 import com.sluice.service.request.GetDataReq;
@@ -55,37 +61,47 @@ public class DataService {
 
     private static final String KV_PASSWORD = "kv.password";
 
+    private static final BaseInfo ERROR_MSG = new BaseInfo("Token is error");
+
     @Autowired
     private PropertyCache propertyCache;
 
-    public Object getData(GetDataReq getDataReq) {
+    @Autowired
+    private TokenCache tokenCache;
+
+    public Object getData(HttpServletRequest httpServletRequest, GetDataReq getDataReq) {
         LOGGER.info("=== Start to do getData(), and the req is " + getDataReq);
-
-        KvInfo kvInfo = new KvInfo();
-
-        try {
-            String encName = URLEncoder.encode(getDataReq.getName(), "gb2312");
-            String urlString = propertyCache.getPropertyValue(KV_HOST) + GET_TAG + "?strVarName=" + encName;
-
-            LOGGER.info("=== start to send http request for " + urlString);
-
-            String result = URLConnectionUtil.doGet(urlString, "gbk");
-
-            LOGGER.info("=== get the result from http request, result : " + result);
-
-            KvRemoteInfo kvRemoteInfo = JSONObject.parseObject(result, KvRemoteInfo.class);
-            kvInfo.setId(kvRemoteInfo.getnVarID());
-            kvInfo.setName(kvRemoteInfo.getStrVarName());
-            kvInfo.setValue(kvRemoteInfo.getVarValue());
-            kvInfo.setType(kvRemoteInfo.getnVarType());
-
-        } catch (Exception e) {
-            LOGGER.error("=== Failed to do getData()");
-            LOGGER.error(e);
+        if (!checkToken(httpServletRequest)) {
+            LOGGER.error("===  The token is not exist");
+            return ERROR_MSG;
         }
 
-        LOGGER.info("=== End to do getData(), and the result is " + kvInfo);
-        return kvInfo;
+        List<String> names = getDataReq.getNames();
+
+        List<KvInfo> kvInfos = new ArrayList<>();
+
+        for (String name : names) {
+            try {
+                String encName = URLEncoder.encode(name, "gb2312");
+                String urlString = propertyCache.getPropertyValue(KV_HOST) + GET_TAG + "?strVarName=" + encName;
+
+                LOGGER.info("=== start to send http request for " + urlString);
+
+                String result = URLConnectionUtil.doGet(urlString, "gbk");
+
+                LOGGER.info("=== get the result from http request, result : " + result);
+
+                KvInfo kvInfo = parseKvInfo(result);
+
+                kvInfos.add(kvInfo);
+            } catch (Exception e) {
+                LOGGER.error("=== Failed to do getData()");
+                LOGGER.error(e);
+            }
+        }
+
+        LOGGER.info("=== End to do getData(), and the result is " + kvInfos);
+        return kvInfos;
     }
 
     public Object getDataList() {
@@ -113,10 +129,15 @@ public class DataService {
         return result;
     }
 
-    public Object setData(SetDataReq setDataReq) {
+    public Object setData(HttpServletRequest httpServletRequest, SetDataReq setDataReq) {
         LOGGER.info("=== Start to do setData(), and the req is " + setDataReq);
 
-        String result = null;
+        if (!checkToken(httpServletRequest)) {
+            LOGGER.error("===  The token is not exist");
+            return ERROR_MSG;
+        }
+
+        KvInfo kvInfo = null;
 
         try {
             String usernamePro = propertyCache.getPropertyValue(KV_USERNAME);
@@ -132,16 +153,36 @@ public class DataService {
 
             LOGGER.info("=== start to send http request for " + urlString);
 
-            result = URLConnectionUtil.doGet(urlString, "utf-8");
+            String result = URLConnectionUtil.doGet(urlString, "utf-8");
 
             LOGGER.info("=== get the result from http request, result : " + result);
+
+            kvInfo = parseKvInfo(result);
+
         } catch (Exception e) {
             LOGGER.error("=== Failed to do setData()");
             LOGGER.error(e);
         }
 
-        LOGGER.info("=== End to do setData(), and the result is " + result);
-        return result;
+        LOGGER.info("=== End to do setData(), and the kvInfo is " + kvInfo);
+        return kvInfo;
+    }
+
+    private boolean checkToken(HttpServletRequest httpServletRequest) {
+        String bearerToken = httpServletRequest.getHeader("authorization");
+        LOGGER.info("=== Get the token from request header, bearerToken is " + bearerToken);
+        String token = bearerToken.substring(7);
+         return tokenCache.exist(token);
+    }
+
+    private KvInfo parseKvInfo(String result) {
+        KvRemoteInfo kvRemoteInfo = JSONObject.parseObject(result, KvRemoteInfo.class);
+        KvInfo kvInfo = new KvInfo();
+        kvInfo.setId(kvRemoteInfo.getnVarID());
+        kvInfo.setName(kvRemoteInfo.getStrVarName());
+        kvInfo.setValue(kvRemoteInfo.getVarValue());
+        kvInfo.setType(kvRemoteInfo.getnVarType());
+        return kvInfo;
     }
 
 }

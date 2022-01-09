@@ -12,6 +12,8 @@ import com.sluice.service.request.GetDataReq;
 import com.sluice.service.request.GetTokenReq;
 import com.sluice.service.request.SetDataReq;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController("sluiceManagerController")
 public class SluiceManagerController {
 
@@ -32,13 +34,13 @@ public class SluiceManagerController {
     }
 
     @RequestMapping(path = "/getData", method = RequestMethod.POST)
-    public Object getData(@RequestBody GetDataReq getDataReq) {
-        return dataService.getData(getDataReq);
+    public Object getData(HttpServletRequest httpServletRequest, @RequestBody GetDataReq getDataReq) {
+        return dataService.getData(httpServletRequest, getDataReq);
     }
 
     @RequestMapping(path = "/setData", method = RequestMethod.POST)
-    public Object setData(@RequestBody SetDataReq setDataReq) {
-        return dataService.setData(setDataReq);
+    public Object setData(HttpServletRequest httpServletRequest, @RequestBody SetDataReq setDataReq) {
+        return dataService.setData(httpServletRequest, setDataReq);
     }
 
 }

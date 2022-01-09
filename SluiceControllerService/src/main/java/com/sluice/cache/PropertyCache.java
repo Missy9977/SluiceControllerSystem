@@ -25,7 +25,7 @@ public class PropertyCache {
     private static final long EXPIRES = 7;
 
     private final Cache<String, String> cache =
-        CacheBuilder.newBuilder().initialCapacity(30).expireAfterAccess(EXPIRES, TimeUnit.DAYS).build();
+        CacheBuilder.newBuilder().initialCapacity(8).expireAfterAccess(EXPIRES, TimeUnit.DAYS).build();
 
     @Autowired
     private PropertyUtil propertyUtil;

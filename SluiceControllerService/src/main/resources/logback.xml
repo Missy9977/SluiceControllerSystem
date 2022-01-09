@@ -4,7 +4,7 @@
   <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
   <property name="LOG_PATH" value="logs"/>
-  <property name="PATTERN_FILE" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{35}: %msg %n"/>
+  <property name="PATTERN_FILE" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{35}-%L: %msg %n"/>
 
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>

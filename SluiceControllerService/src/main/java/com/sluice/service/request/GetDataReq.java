@@ -1,23 +1,25 @@
 package com.sluice.service.request;
 
+import java.util.List;
+
 /**
  * @author : missy
  * @date : 2022-01-06 19:20
  */
 public class GetDataReq {
 
-    private String name;
+    private List<String> names;
 
-    public String getName() {
-        return name;
+    public List<String> getNames() {
+        return names;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNames(List<String> names) {
+        this.names = names;
     }
 
     @Override
     public String toString() {
-        return "GetDataReq{" + "name='" + name + '\'' + '}';
+        return "GetDataReq{" + "names=" + names + '}';
     }
 }

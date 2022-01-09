@@ -6,7 +6,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
 
-import com.sluice.service.request.GetDataReq;
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sluice.service.DataService;
-import com.sluice.service.TokenService;
+import com.sluice.service.request.GetDataReq;
 
 /**
  * 测试类
@@ -28,15 +29,15 @@ public class TestController {
     private DataService dataService;
 
     @RequestMapping(path = "/test", method = RequestMethod.GET)
-    public Object test() {
+    public Object test(HttpServletRequest httpServletRequest) {
         LOGGER.info("=== Start to do test() of TestController");
         String dataList = (String)dataService.getDataList();
         try {
             String name = getSomeOne(dataList);
             if (name != null) {
                 GetDataReq req = new GetDataReq();
-                req.setName(name);
-                dataService.getData(req);
+                req.setNames(Arrays.asList(name));
+                dataService.getData(httpServletRequest, req);
             }
         } catch (IOException e) {
             LOGGER.error(e);
