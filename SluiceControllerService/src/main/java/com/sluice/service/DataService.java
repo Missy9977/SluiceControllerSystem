@@ -171,8 +171,11 @@ public class DataService {
     private boolean checkToken(HttpServletRequest httpServletRequest) {
         String bearerToken = httpServletRequest.getHeader("authorization");
         LOGGER.info("=== Get the token from request header, bearerToken is " + bearerToken);
+        if (bearerToken == null) {
+            return false;
+        }
         String token = bearerToken.substring(7);
-         return tokenCache.exist(token);
+        return tokenCache.exist(token);
     }
 
     private KvInfo parseKvInfo(String result) {
