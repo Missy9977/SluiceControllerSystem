@@ -1,12 +1,12 @@
 {
   "keys": [
     {
-      "client_id": "admin",
-      "client_secret": "123456"
+      "id": "admin",
+      "secret": "123456"
     },
     {
-      "client_id": "admin123",
-      "client_secret": "123123"
+      "id": "admin123",
+      "secret": "123123"
     }
   ]
 }

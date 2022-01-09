@@ -22,7 +22,7 @@ import com.sluice.service.TokenService;
  */
 @RestController
 public class TestController {
-    private static final Log LOGGER = LogFactory.getLog(TokenService.class);
+    private static final Log LOGGER = LogFactory.getLog(TestController.class);
 
     @Autowired
     private DataService dataService;

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.sluice.service.DataService;
-import com.sluice.util.PropertyUtil;
+import com.sluice.service.PropertyUtil;
 
 /**
  * @author : missy

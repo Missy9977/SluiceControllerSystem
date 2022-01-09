@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.alibaba.fastjson.JSONObject;
@@ -18,6 +19,7 @@ import com.sluice.access.util.RestTemplateUtil;
 import com.sluice.access.util.URLConnectionUtil;
 import com.sluice.cache.PropertyCache;
 import com.sluice.data.KvInfo;
+import com.sluice.data.KvRemoteInfo;
 import com.sluice.service.request.GetDataReq;
 import com.sluice.service.request.SetDataReq;
 
@@ -39,7 +41,7 @@ public class DataService {
     private static final Log LOGGER = LogFactory.getLog(DataService.class);
 
     /**
-     * url + interface;http://192.168.31.15:8081
+     * url + interface;http://127.0.0.1:8280
      */
     private static final String GET_TAG_LIST = "/GetTagList";
 
@@ -48,12 +50,10 @@ public class DataService {
     private static final String SET_TAG = "/SetTagValue";
 
     private static final String KV_HOST = "kv.host";
+
     private static final String KV_USERNAME = "kv.username";
+
     private static final String KV_PASSWORD = "kv.password";
-
-    private static final String REQUEST_PARAM_ENCODING = "gb2312";
-
-    private static final String RESPONSE_PARAM_ENCODING = "gbk";
 
     @Autowired
     private PropertyCache propertyCache;
@@ -61,19 +61,23 @@ public class DataService {
     public Object getData(GetDataReq getDataReq) {
         LOGGER.info("=== Start to do getData(), and the req is " + getDataReq);
 
-        KvInfo kvInfo = null;
+        KvInfo kvInfo = new KvInfo();
 
         try {
-            String encName = URLEncoder.encode(getDataReq.getName(), REQUEST_PARAM_ENCODING);
-            String urlString = GET_TAG + "?strVarName=" + encName;
+            String encName = URLEncoder.encode(getDataReq.getName(), "gb2312");
+            String urlString = propertyCache.getPropertyValue(KV_HOST) + GET_TAG + "?strVarName=" + encName;
 
             LOGGER.info("=== start to send http request for " + urlString);
 
-            String result = URLConnectionUtil.doGet(urlString, RESPONSE_PARAM_ENCODING);
+            String result = URLConnectionUtil.doGet(urlString, "gbk");
 
             LOGGER.info("=== get the result from http request, result : " + result);
 
-            kvInfo = JSONObject.parseObject(result, KvInfo.class);
+            KvRemoteInfo kvRemoteInfo = JSONObject.parseObject(result, KvRemoteInfo.class);
+            kvInfo.setId(kvRemoteInfo.getnVarID());
+            kvInfo.setName(kvRemoteInfo.getStrVarName());
+            kvInfo.setValue(kvRemoteInfo.getVarValue());
+            kvInfo.setType(kvRemoteInfo.getnVarType());
 
         } catch (Exception e) {
             LOGGER.error("=== Failed to do getData()");
@@ -98,7 +102,7 @@ public class DataService {
 
         try {
             InputStream in = entity.getBody().getInputStream();
-            result = IOUtils.toString(in, RESPONSE_PARAM_ENCODING);
+            result = IOUtils.toString(in, "gbk");
             LOGGER.info("=== get the result from http request, result : " + result);
         } catch (IOException e) {
             LOGGER.error("=== Failed to do getDataList()");
@@ -115,18 +119,20 @@ public class DataService {
         String result = null;
 
         try {
-            String username = propertyCache.getPropertyValue(KV_USERNAME);
-            String password = propertyCache.getPropertyValue(KV_PASSWORD);
-            String dataName = URLEncoder.encode(setDataReq.getName(), REQUEST_PARAM_ENCODING);
+            String usernamePro = propertyCache.getPropertyValue(KV_USERNAME);
+            String username = URLEncoder.encode(usernamePro, "utf-8");
+            String passwordPro = propertyCache.getPropertyValue(KV_PASSWORD);
+            String password = DigestUtils.md5DigestAsHex(passwordPro.getBytes());
+            String dataName = URLEncoder.encode(setDataReq.getName(), "utf-8");
             String dataValue = setDataReq.getValue();
 
             // SetTagValue?UserName=administrator&PassWord=12345678123456781234567812345678&strTagName=TagName&strSetTagValue=SetTagValue
             String urlString = propertyCache.getPropertyValue(KV_HOST) + SET_TAG + "?" + "UserName=" + username + "&"
-                + "PassWord" + password + "&" + "strTagName" + dataName + "&" + "strSetTagValue" + dataValue;
+                + "PassWord=" + password + "&" + "strTagName=" + dataName + "&" + "strSetTagValue=" + dataValue;
 
             LOGGER.info("=== start to send http request for " + urlString);
 
-            result = URLConnectionUtil.doGet(urlString, RESPONSE_PARAM_ENCODING);
+            result = URLConnectionUtil.doGet(urlString, "utf-8");
 
             LOGGER.info("=== get the result from http request, result : " + result);
         } catch (Exception e) {

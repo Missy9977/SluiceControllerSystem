@@ -1,7 +1,9 @@
-package com.sluice.util;
+package com.sluice.service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -21,8 +23,8 @@ public class PropertyUtil {
     }
 
     public void readProperties(String fileName) {
-        try (InputStream is = PropertyUtil.class.getResourceAsStream(fileName)) {
-            properties.load(is);
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(FILENAME)) {
+            properties.load(new InputStreamReader(is, StandardCharsets.UTF_8));
         } catch (IOException e) {
             LOGGER.error("=== Failed to load properties file,filename is " + fileName);
             LOGGER.error(e);
