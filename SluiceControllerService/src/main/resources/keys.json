@@ -2,11 +2,7 @@
   "keys": [
     {
       "id": "admin",
-      "secret": "123456"
-    },
-    {
-      "id": "admin123",
-      "secret": "123123"
+      "secret": "123456qq"
     }
   ]
 }

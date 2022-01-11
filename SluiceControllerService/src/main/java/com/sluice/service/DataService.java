@@ -1,23 +1,5 @@
 package com.sluice.service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
-import org.springframework.web.client.RestTemplate;
-
 import com.alibaba.fastjson.JSONObject;
 import com.sluice.access.util.RestTemplateUtil;
 import com.sluice.access.util.URLConnectionUtil;
@@ -28,6 +10,21 @@ import com.sluice.data.KvInfo;
 import com.sluice.data.KvRemoteInfo;
 import com.sluice.service.request.GetDataReq;
 import com.sluice.service.request.SetDataReq;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * 现阶段，组态王Restul WebService服务暂只提供GET请求。对应的开放四个接口，请求方式分别如下：
@@ -137,7 +134,8 @@ public class DataService {
             return ERROR_MSG;
         }
 
-        KvInfo kvInfo = null;
+        String result = null;
+        KvInfo kvInfo;
 
         try {
             String usernamePro = propertyCache.getPropertyValue(KV_USERNAME);
@@ -153,7 +151,7 @@ public class DataService {
 
             LOGGER.info("=== start to send http request for " + urlString);
 
-            String result = URLConnectionUtil.doGet(urlString, "utf-8");
+            result = URLConnectionUtil.doGet(urlString, "utf-8");
 
             LOGGER.info("=== get the result from http request, result : " + result);
 
@@ -162,6 +160,7 @@ public class DataService {
         } catch (Exception e) {
             LOGGER.error("=== Failed to do setData()");
             LOGGER.error(e);
+            return result;
         }
 
         LOGGER.info("=== End to do setData(), and the kvInfo is " + kvInfo);
