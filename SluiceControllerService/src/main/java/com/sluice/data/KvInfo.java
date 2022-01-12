@@ -3,11 +3,13 @@ package com.sluice.data;
 public class KvInfo {
     private String id;
 
-    private String type;
+    private String dataType;
 
     private String name;
 
     private String value;
+
+    private String timestamp;
 
     public String getId() {
         return id;
@@ -17,12 +19,12 @@ public class KvInfo {
         this.id = id;
     }
 
-    public String getType() {
-        return type;
+    public String getDataType() {
+        return dataType;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
     }
 
     public String getName() {
@@ -41,9 +43,17 @@ public class KvInfo {
         this.value = value;
     }
 
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
     @Override
     public String toString() {
-        return "KvInfo{" + "id='" + id + '\'' + ", type='" + type + '\'' + ", name='" + name + '\'' + ", value='"
-            + value + '\'' + '}';
+        return "KvInfo{" + "id='" + id + '\'' + ", dataType='" + dataType + '\'' + ", name='" + name + '\''
+            + ", value='" + value + '\'' + ", timestamp='" + timestamp + '\'' + '}';
     }
 }

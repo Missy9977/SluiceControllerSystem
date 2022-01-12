@@ -1,5 +1,23 @@
 package com.sluice.service;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
+import org.springframework.web.client.RestTemplate;
+
 import com.alibaba.fastjson.JSONObject;
 import com.sluice.access.util.RestTemplateUtil;
 import com.sluice.access.util.URLConnectionUtil;
@@ -10,21 +28,7 @@ import com.sluice.data.KvInfo;
 import com.sluice.data.KvRemoteInfo;
 import com.sluice.service.request.GetDataReq;
 import com.sluice.service.request.SetDataReq;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
-import org.springframework.web.client.RestTemplate;
+import com.sluice.util.DateLocalUtcUtil;
 
 /**
  * 现阶段，组态王Restul WebService服务暂只提供GET请求。对应的开放四个接口，请求方式分别如下：
@@ -60,6 +64,10 @@ public class DataService {
 
     private static final BaseInfo ERROR_MSG = new BaseInfo("Token is error");
 
+    private static final Integer SUCCESS = 1;
+
+    private static final Integer ERROR = 0;
+
     @Autowired
     private PropertyCache propertyCache;
 
@@ -74,6 +82,9 @@ public class DataService {
         }
 
         List<String> names = getDataReq.getNames();
+        if (names == null || names.size() == 0) {
+            return ERROR;
+        }
 
         List<KvInfo> kvInfos = new ArrayList<>();
 
@@ -134,9 +145,6 @@ public class DataService {
             return ERROR_MSG;
         }
 
-        String result = null;
-        KvInfo kvInfo;
-
         try {
             String usernamePro = propertyCache.getPropertyValue(KV_USERNAME);
             String username = URLEncoder.encode(usernamePro, "utf-8");
@@ -151,20 +159,18 @@ public class DataService {
 
             LOGGER.info("=== start to send http request for " + urlString);
 
-            result = URLConnectionUtil.doGet(urlString, "utf-8");
+            String result = URLConnectionUtil.doGet(urlString, "utf-8");
 
             LOGGER.info("=== get the result from http request, result : " + result);
-
-            kvInfo = parseKvInfo(result);
 
         } catch (Exception e) {
             LOGGER.error("=== Failed to do setData()");
             LOGGER.error(e);
-            return result;
+            return ERROR;
         }
 
-        LOGGER.info("=== End to do setData(), and the kvInfo is " + kvInfo);
-        return kvInfo;
+        LOGGER.info("=== End to do setData(), and return 1");
+        return SUCCESS;
     }
 
     private boolean checkToken(HttpServletRequest httpServletRequest) {
@@ -180,10 +186,12 @@ public class DataService {
     private KvInfo parseKvInfo(String result) {
         KvRemoteInfo kvRemoteInfo = JSONObject.parseObject(result, KvRemoteInfo.class);
         KvInfo kvInfo = new KvInfo();
-        kvInfo.setId(kvRemoteInfo.getnVarID());
+        // 不传id，让园区通过name设置变量值
+        // kvInfo.setId(kvRemoteInfo.getnVarID());
         kvInfo.setName(kvRemoteInfo.getStrVarName());
         kvInfo.setValue(kvRemoteInfo.getVarValue());
-        kvInfo.setType(kvRemoteInfo.getnVarType());
+        kvInfo.setDataType(kvRemoteInfo.getnVarType());
+        kvInfo.setTimestamp(DateLocalUtcUtil.getThisUTCTime());
         return kvInfo;
     }
 

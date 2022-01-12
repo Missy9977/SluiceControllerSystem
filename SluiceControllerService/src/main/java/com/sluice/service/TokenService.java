@@ -31,11 +31,12 @@ public class TokenService {
 
         TokenInfo tokenInfo = new TokenInfo();
 
-        if (verify(getTokenReq.getId(), getTokenReq.getSecret())) {
-            String tokenString = buildTokenString(getTokenReq.getId());
-            tokenInfo.setToken(tokenString);
-            tokenInfo.setExpires(tokenCache.getExpires());
-            tokenCache.put(getTokenReq.getId(), tokenString);
+        if (verify(getTokenReq.getClient_id(), getTokenReq.getClient_secret())) {
+            String tokenString = buildTokenString(getTokenReq.getClient_id());
+            tokenInfo.setAccess_token(tokenString);
+            tokenInfo.setExpires_in(tokenCache.getExpires());
+            tokenInfo.setToken_type("Bearer");
+            tokenCache.put(getTokenReq.getClient_id(), tokenString);
         } else {
             LOGGER.error("=== the id or secret is error! please input them again");
         }

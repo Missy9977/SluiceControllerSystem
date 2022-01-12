@@ -6,28 +6,28 @@ package com.sluice.service.request;
  */
 public class GetTokenReq {
 
-    private String id;
+    private String client_id;
 
-    private String secret;
+    private String client_secret;
 
-    public String getId() {
-        return id;
+    public String getClient_id() {
+        return client_id;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setClient_id(String client_id) {
+        this.client_id = client_id;
     }
 
-    public String getSecret() {
-        return secret;
+    public String getClient_secret() {
+        return client_secret;
     }
 
-    public void setSecret(String secret) {
-        this.secret = secret;
+    public void setClient_secret(String client_secret) {
+        this.client_secret = client_secret;
     }
 
     @Override
     public String toString() {
-        return "GetTokenReq{" + "id='" + id + '\'' + ", secret='" + secret + '\'' + '}';
+        return "GetTokenReq{" + "client_id='" + client_id + '\'' + ", client_secret='" + client_secret + '\'' + '}';
     }
 }
