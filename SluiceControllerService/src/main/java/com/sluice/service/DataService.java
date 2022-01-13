@@ -3,8 +3,13 @@ package com.sluice.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -28,7 +33,6 @@ import com.sluice.data.KvInfo;
 import com.sluice.data.KvRemoteInfo;
 import com.sluice.service.request.GetDataReq;
 import com.sluice.service.request.SetDataReq;
-import com.sluice.util.DateLocalUtcUtil;
 
 /**
  * 现阶段，组态王Restul WebService服务暂只提供GET请求。对应的开放四个接口，请求方式分别如下：
@@ -62,11 +66,25 @@ public class DataService {
 
     private static final String KV_PASSWORD = "kv.password";
 
-    private static final BaseInfo ERROR_MSG = new BaseInfo("Token is error");
+    private static final Integer SUCCESS_CODE = 0;
 
-    private static final Integer SUCCESS = 1;
+    private static final Integer ERROR_CODE = 1;
 
-    private static final Integer ERROR = 0;
+    private static final String ISO_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSS'Z'";
+
+    private static final Map<String, String> REQ_NAME_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {
+        {
+            put("SZ_OPENED", "valve_open");
+            put("SZ_CLOSED", "valve_close");
+        }
+    });
+
+    private static final Map<String, String> RSP_NAME_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {
+        {
+            put("valve_open", "SZ_OPENED");
+            put("valve_close", "SZ_CLOSED");
+        }
+    });
 
     @Autowired
     private PropertyCache propertyCache;
@@ -78,19 +96,21 @@ public class DataService {
         LOGGER.info("=== Start to do getData(), and the req is " + getDataReq);
         if (!checkToken(httpServletRequest)) {
             LOGGER.error("===  The token is not exist");
-            return ERROR_MSG;
+            return new BaseInfo(ERROR_CODE, "Token is error");
         }
 
         List<String> names = getDataReq.getNames();
         if (names == null || names.size() == 0) {
-            return ERROR;
+            return new BaseInfo(ERROR_CODE, "names can not be null");
         }
 
         List<KvInfo> kvInfos = new ArrayList<>();
 
         for (String name : names) {
             try {
-                String encName = URLEncoder.encode(name, "gb2312");
+                String realName = REQ_NAME_MAP.get(name);
+
+                String encName = URLEncoder.encode(realName, "gb2312");
                 String urlString = propertyCache.getPropertyValue(KV_HOST) + GET_TAG + "?strVarName=" + encName;
 
                 LOGGER.info("=== start to send http request for " + urlString);
@@ -103,8 +123,7 @@ public class DataService {
 
                 kvInfos.add(kvInfo);
             } catch (Exception e) {
-                LOGGER.error("=== Failed to do getData()");
-                LOGGER.error(e);
+                LOGGER.error("=== Failed to do getData()", e);
             }
         }
 
@@ -142,7 +161,7 @@ public class DataService {
 
         if (!checkToken(httpServletRequest)) {
             LOGGER.error("===  The token is not exist");
-            return ERROR_MSG;
+            return new BaseInfo(ERROR_CODE, "Token is error");
         }
 
         try {
@@ -150,7 +169,13 @@ public class DataService {
             String username = URLEncoder.encode(usernamePro, "utf-8");
             String passwordPro = propertyCache.getPropertyValue(KV_PASSWORD);
             String password = DigestUtils.md5DigestAsHex(passwordPro.getBytes());
-            String dataName = URLEncoder.encode(setDataReq.getName(), "utf-8");
+
+            String realName = REQ_NAME_MAP.get(setDataReq.getName());
+            if (realName == null) {
+                return new BaseInfo(ERROR_CODE, "Invalid name");
+            }
+
+            String dataName = URLEncoder.encode(realName, "utf-8");
             String dataValue = setDataReq.getValue();
 
             // SetTagValue?UserName=administrator&PassWord=12345678123456781234567812345678&strTagName=TagName&strSetTagValue=SetTagValue
@@ -164,13 +189,12 @@ public class DataService {
             LOGGER.info("=== get the result from http request, result : " + result);
 
         } catch (Exception e) {
-            LOGGER.error("=== Failed to do setData()");
-            LOGGER.error(e);
-            return ERROR;
+            LOGGER.error("=== Failed to do setData()", e);
+            return new BaseInfo(ERROR_CODE, "Failed to set Data");
         }
 
-        LOGGER.info("=== End to do setData(), and return 1");
-        return SUCCESS;
+        LOGGER.info("=== End to do setData()");
+        return new BaseInfo(SUCCESS_CODE, "OK");
     }
 
     private boolean checkToken(HttpServletRequest httpServletRequest) {
@@ -188,10 +212,12 @@ public class DataService {
         KvInfo kvInfo = new KvInfo();
         // 不传id，让园区通过name设置变量值
         // kvInfo.setId(kvRemoteInfo.getnVarID());
-        kvInfo.setName(kvRemoteInfo.getStrVarName());
+        kvInfo.setName(RSP_NAME_MAP.get(kvRemoteInfo.getStrVarName()));
         kvInfo.setValue(kvRemoteInfo.getVarValue());
         kvInfo.setDataType(kvRemoteInfo.getnVarType());
-        kvInfo.setTimestamp(DateLocalUtcUtil.getThisUTCTime());
+
+        SimpleDateFormat sdf = new SimpleDateFormat(ISO_DATE_TIME_FORMAT);
+        kvInfo.setTimestamp(sdf.format(new Date()));
         return kvInfo;
     }
 
