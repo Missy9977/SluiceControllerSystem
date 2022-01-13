@@ -13,7 +13,6 @@ import org.springframework.util.DigestUtils;
 import com.sluice.cache.TokenCache;
 import com.sluice.cache.UserInfoCache;
 import com.sluice.data.TokenInfo;
-import com.sluice.service.request.GetTokenReq;
 
 @Service("tokenService")
 public class TokenService {
@@ -26,17 +25,17 @@ public class TokenService {
     @Autowired
     private TokenCache tokenCache;
 
-    public TokenInfo getToken(GetTokenReq getTokenReq) {
-        LOGGER.info("=== Start to do getToken(), and the req is " + getTokenReq);
+    public TokenInfo getToken(String id, String secret) {
+        LOGGER.info("=== Start to do getToken(), and the id is " + id + ",secret is " + secret);
 
         TokenInfo tokenInfo = new TokenInfo();
 
-        if (verify(getTokenReq.getClient_id(), getTokenReq.getClient_secret())) {
-            String tokenString = buildTokenString(getTokenReq.getClient_id());
+        if (verify(id, secret)) {
+            String tokenString = buildTokenString(id);
             tokenInfo.setAccess_token(tokenString);
             tokenInfo.setExpires_in(tokenCache.getExpires());
             tokenInfo.setToken_type("Bearer");
-            tokenCache.put(getTokenReq.getClient_id(), tokenString);
+            tokenCache.put(id, tokenString);
         } else {
             LOGGER.error("=== the id or secret is error! please input them again");
         }

@@ -1,18 +1,18 @@
 package com.sluice.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sluice.service.DataService;
 import com.sluice.service.TokenService;
 import com.sluice.service.request.GetDataReq;
-import com.sluice.service.request.GetTokenReq;
 import com.sluice.service.request.SetDataReq;
-
-import javax.servlet.http.HttpServletRequest;
 
 @RestController("sluiceManagerController")
 public class SluiceManagerController {
@@ -24,8 +24,9 @@ public class SluiceManagerController {
     private DataService dataService;
 
     @RequestMapping(path = "/getToken", method = RequestMethod.POST)
-    public Object getToken(@RequestBody GetTokenReq getTokenReq) {
-        return tokenService.getToken(getTokenReq);
+    public Object getToken(@RequestParam("client_secret") String client_secret,
+        @RequestParam("client_id") String client_id) {
+        return tokenService.getToken(client_id, client_secret);
     }
 
     @RequestMapping(path = "/getDataList", method = RequestMethod.POST)
