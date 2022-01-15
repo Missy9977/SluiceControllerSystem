@@ -29,7 +29,7 @@ public class SluiceManagerController {
         return tokenService.getToken(client_id, client_secret);
     }
 
-    @RequestMapping(path = "/getDataList", method = RequestMethod.POST)
+    @RequestMapping(path = "/getDataList")
     public Object getDataList() {
         return dataService.getDataList();
     }
