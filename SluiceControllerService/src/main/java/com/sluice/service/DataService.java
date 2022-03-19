@@ -72,17 +72,27 @@ public class DataService {
 
     private static final String ISO_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSS'Z'";
 
-    private static final Map<String, String> REQ_NAME_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {
+    private static final Map<String, String> SET_REQ_NAME_MAP =
+        Collections.unmodifiableMap(new HashMap<String, String>() {
+            {
+                put("SZ_OPENED", "雨水排放阀开");
+                put("SZ_CLOSED", "雨水排放阀关");
+            }
+        });
+
+    private static final Map<String, String> QUERY_REQ_NAME_MAP =
+        Collections.unmodifiableMap(new HashMap<String, String>() {
         {
-            put("SZ_OPENED", "valve_open");
-            put("SZ_CLOSED", "valve_close");
+            put("SZ_OPENED", "雨水排放阀开到位");
+            put("SZ_CLOSED", "雨水排放阀关到位");
         }
     });
 
-    private static final Map<String, String> RSP_NAME_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {
+    private static final Map<String, String> QUERY_RSP_NAME_MAP =
+        Collections.unmodifiableMap(new HashMap<String, String>() {
         {
-            put("valve_open", "SZ_OPENED");
-            put("valve_close", "SZ_CLOSED");
+            put("雨水排放阀开到位", "SZ_OPENED");
+            put("雨水排放阀关到位", "SZ_CLOSED");
         }
     });
 
@@ -108,7 +118,7 @@ public class DataService {
 
         for (String name : names) {
             try {
-                String realName = REQ_NAME_MAP.get(name);
+                String realName = QUERY_REQ_NAME_MAP.get(name);
 
                 String encName = URLEncoder.encode(realName, "gb2312");
                 String urlString = propertyCache.getPropertyValue(KV_HOST) + GET_TAG + "?strVarName=" + encName;
@@ -170,7 +180,7 @@ public class DataService {
             String passwordPro = propertyCache.getPropertyValue(KV_PASSWORD);
             String password = DigestUtils.md5DigestAsHex(passwordPro.getBytes());
 
-            String realName = REQ_NAME_MAP.get(setDataReq.getName());
+            String realName = SET_REQ_NAME_MAP.get(setDataReq.getName());
             if (realName == null) {
                 return new BaseInfo(ERROR_CODE, "Invalid name");
             }
@@ -212,7 +222,7 @@ public class DataService {
         KvInfo kvInfo = new KvInfo();
         // 不传id，让园区通过name设置变量值
         // kvInfo.setId(kvRemoteInfo.getnVarID());
-        kvInfo.setName(RSP_NAME_MAP.get(kvRemoteInfo.getStrVarName()));
+        kvInfo.setName(QUERY_RSP_NAME_MAP.get(kvRemoteInfo.getStrVarName()));
         kvInfo.setValue(kvRemoteInfo.getVarValue());
         kvInfo.setDataType(kvRemoteInfo.getnVarType());
 
